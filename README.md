@@ -1,2 +1,1 @@
-# Trinity-V2-Hybrid-
-platforma operačna centrála firmy ktorú riady Trinity kde sa sama vivija ucinnodifikuje ma normálne miesto nenorieskumy výskum skúšanie nového testovanie vimislanie nové webd dizajn de ma normálne neobmedzenost moNosti a kde je on line 24 7 
+Trinity-V2-Hybrid je operačná centrála firmy, ktorú riadi Trinity. Je to online platforma dostupná 24/7, ktorá slúži na výskum, skúšanie nových nápadov, testovanie funkcií, návrh webov, dizajn, vývoj a priebežné zlepšovanie systému. Platforma má byť modulárna, samovyvíjacia a pripravená na rozširovanie o nové nástroje, konektory a automatizované pracovné postupy.
