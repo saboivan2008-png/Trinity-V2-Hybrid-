@@ -28,3 +28,4 @@ Butcher Trinity is built as a server-first AI platform with a thin UI, a chat or
 - Reversibility.
 - Safe self-improvement.
 - No direct client access to sensitive layers.
+Fix buG. 
