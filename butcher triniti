@@ -1,0 +1,108 @@
+export interface Env {
+  SECRET: string;
+  TELEGRAM_URL?: string;
+  DISCORD_URL?: string;
+  INSTAGRAM_URL?: string;
+  FACEBOOK_URL?: string;
+  TIKTOK_URL?: string;
+  LINKEDIN_URL?: string;
+  EXTRA_URL_1?: string;
+  EXTRA_URL_2?: string;
+}
+
+type TargetName =
+  | "telegram"
+  | "discord"
+  | "instagram"
+  | "facebook"
+  | "tiktok"
+  | "linkedin"
+  | "extra1"
+  | "extra2";
+
+function targetMap(env: Env): Record<TargetName, string | undefined> {
+  return {
+    telegram: env.TELEGRAM_URL,
+    discord: env.DISCORD_URL,
+    instagram: env.INSTAGRAM_URL,
+    facebook: env.FACEBOOK_URL,
+    tiktok: env.TIKTOK_URL,
+    linkedin: env.LINKEDIN_URL,
+    extra1: env.EXTRA_URL_1,
+    extra2: env.EXTRA_URL_2,
+  };
+}
+
+async function forward(url: string, payload: unknown) {
+  return fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    if (request.method === "GET") {
+      return Response.json({
+        ok: true,
+        service: "universal-worker",
+        routes: [
+          "POST /  with { secret, target, payload }",
+          "POST /relay with { secret, targets, payload }",
+        ],
+      });
+    }
+
+    if (request.method !== "POST") {
+      return new Response("Method Not Allowed", { status: 405 });
+    }
+
+    try {
+      const body = await request.json() as {
+        secret?: string;
+        target?: TargetName;
+        targets?: TargetName[];
+        payload?: unknown;
+      };
+
+      if (!body.secret || body.secret !== env.SECRET) {
+        return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+      }
+
+      const map = targetMap(env);
+      const payload = body.payload ?? {};
+      const targets = Array.isArray(body.targets)
+        ? body.targets
+        : body.target
+          ? [body.target]
+          : [];
+
+      if (targets.length === 0) {
+        return Response.json(
+          { ok: false, error: "No target specified" },
+          { status: 400 }
+        );
+      }
+
+      const results = await Promise.all(
+        targets.map(async (name) => {
+          const url = map[name];
+          if (!url) {
+            return { target: name, ok: false, error: "Target URL not configured" };
+          }
+
+          const res = await forward(url, payload);
+          return { target: name, ok: res.ok, status: res.status };
+        })
+      );
+
+      return Response.json({ ok: true, results });
+    } catch (error) {
+      return Response.json(
+        { ok: false, error: "Bad request", details: String(error) },
+        { status: 400 }
+      );
+    }
+  },
+};
